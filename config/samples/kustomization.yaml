@@ -1,0 +1,4 @@
+## Append samples of your project ##
+resources:
+- certmanager_v1alpha1_alphaissuer.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples

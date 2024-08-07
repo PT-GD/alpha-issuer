@@ -1,0 +1,27 @@
+# permissions for end users to edit alphaissuers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: alpha-issuer
+    app.kubernetes.io/managed-by: kustomize
+  name: alphaissuer-editor-role
+rules:
+- apiGroups:
+  - certmanager.alpha-issuer.io
+  resources:
+  - alphaissuers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - certmanager.alpha-issuer.io
+  resources:
+  - alphaissuers/status
+  verbs:
+  - get

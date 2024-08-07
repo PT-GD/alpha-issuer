@@ -1,0 +1,9 @@
+apiVersion: certmanager.alpha-issuer.io/v1alpha1
+kind: AlphaIssuer
+metadata:
+  labels:
+    app.kubernetes.io/name: alpha-issuer
+    app.kubernetes.io/managed-by: kustomize
+  name: alphaissuer-sample
+spec:
+  # TODO(user): Add fields here

@@ -1,0 +1,23 @@
+# permissions for end users to view alphaissuers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: alpha-issuer
+    app.kubernetes.io/managed-by: kustomize
+  name: alphaissuer-viewer-role
+rules:
+- apiGroups:
+  - certmanager.alpha-issuer.io
+  resources:
+  - alphaissuers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - certmanager.alpha-issuer.io
+  resources:
+  - alphaissuers/status
+  verbs:
+  - get
