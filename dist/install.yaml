@@ -1,0 +1,393 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: alpha-issuer
+    control-plane: controller-manager
+  name: alpha-issuer-system
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.15.0
+  name: alphaissuers.certmanager.alpha-issuer.io
+spec:
+  group: certmanager.alpha-issuer.io
+  names:
+    kind: AlphaIssuer
+    listKind: AlphaIssuerList
+    plural: alphaissuers
+    singular: alphaissuer
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.conditions[?(@.type=="Ready")].status
+      name: Ready
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="Ready")].reason
+      name: Reason
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="Ready")].message
+      name: Message
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="Ready")].lastTransitionTime
+      name: LastTransition
+      type: date
+    - jsonPath: .status.conditions[?(@.type=="Ready")].observedGeneration
+      name: ObservedGeneration
+      type: integer
+    - jsonPath: .metadata.generation
+      name: Generation
+      type: integer
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: api
+    schema:
+      openAPIV3Schema:
+        description: AlphaIssuer is the Schema for the alphaissuers API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: AlphaIssuerSpec defines the desired state of AlphaIssuer
+            properties:
+              foo:
+                description: Foo is an example field of AlphaIssuer. Edit alphaissuer_types.go
+                  to remove/update
+                type: string
+            type: object
+          status:
+            properties:
+              conditions:
+                description: |-
+                  List of status conditions to indicate the status of an Issuer.
+                  Known condition types are `Ready`.
+                items:
+                  description: IssuerCondition contains condition information for
+                    an Issuer.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        LastTransitionTime is the timestamp corresponding to the last status
+                        change of this condition.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        Message is a human readable description of the details of the last
+                        transition, complementing reason.
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        If set, this represents the .metadata.generation that the condition was
+                        set based upon.
+                        For instance, if .metadata.generation is currently 12, but the
+                        .status.condition[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the Issuer.
+                      format: int64
+                      type: integer
+                    reason:
+                      description: |-
+                        Reason is a brief machine readable explanation for the condition's last
+                        transition.
+                      type: string
+                    status:
+                      description: Status of the condition, one of (`True`, `False`,
+                        `Unknown`).
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: Type of the condition, known values are (`Ready`).
+                      type: string
+                  required:
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: alpha-issuer
+  name: alpha-issuer-controller-manager
+  namespace: alpha-issuer-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: alpha-issuer
+  name: alpha-issuer-leader-election-role
+  namespace: alpha-issuer-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: alpha-issuer
+  name: alpha-issuer-alphaissuer-editor-role
+rules:
+- apiGroups:
+  - certmanager.alpha-issuer.io
+  resources:
+  - alphaissuers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - certmanager.alpha-issuer.io
+  resources:
+  - alphaissuers/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: alpha-issuer
+  name: alpha-issuer-alphaissuer-viewer-role
+rules:
+- apiGroups:
+  - certmanager.alpha-issuer.io
+  resources:
+  - alphaissuers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - certmanager.alpha-issuer.io
+  resources:
+  - alphaissuers/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: alpha-issuer-manager-role
+rules:
+- apiGroups:
+  - alphaissuers.certmanager.alpha-issuer.io
+  resources:
+  - alphaclusterissuers
+  - aplhaissuers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - alphaissuers.certmanager.alpha-issuer.io
+  resources:
+  - alphaclusterissuers/status
+  - alphaissuers/status
+  verbs:
+  - patch
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - certificaterequests
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - certificaterequests/status
+  verbs:
+  - patch
+- apiGroups:
+  - certificates.k8s.io
+  resources:
+  - certificatesigningrequests
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - certificates.k8s.io
+  resources:
+  - certificatesigningrequests/status
+  verbs:
+  - patch
+- apiGroups:
+  - certificates.k8s.io
+  resourceNames:
+  - alphaclusterissuers.certmanager.alpha-issuer.io/*
+  - alphaissuers.certmanager.alpha-issuer.io/*
+  resources:
+  - signers
+  verbs:
+  - sign
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: alpha-issuer
+  name: alpha-issuer-leader-election-rolebinding
+  namespace: alpha-issuer-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: alpha-issuer-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: alpha-issuer-controller-manager
+  namespace: alpha-issuer-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: alpha-issuer
+  name: alpha-issuer-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: alpha-issuer-manager-role
+subjects:
+- kind: ServiceAccount
+  name: alpha-issuer-controller-manager
+  namespace: alpha-issuer-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: alpha-issuer
+    control-plane: controller-manager
+  name: alpha-issuer-controller-manager
+  namespace: alpha-issuer-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        control-plane: controller-manager
+    spec:
+      containers:
+      - args:
+        - --leader-elect
+        - --health-probe-bind-address=:8081
+        command:
+        - /manager
+        image: ptgdit/alpha-issuer.io:latest
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+      securityContext:
+        runAsNonRoot: true
+      serviceAccountName: alpha-issuer-controller-manager
+      terminationGracePeriodSeconds: 10
