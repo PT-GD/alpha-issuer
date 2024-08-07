@@ -1,4 +1,4 @@
-apiVersion: certmanager.alpha-issuer.io/v1alpha1
+apiVersion: certmanager.alpha-issuer.io/api
 kind: AlphaIssuer
 metadata:
   labels:
